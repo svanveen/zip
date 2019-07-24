@@ -5,48 +5,47 @@
 
 namespace zip {
 
+template <typename ...ITERATORS>
+class Iterator
+{
+    using IteratorTuple = std::tuple<ITERATORS...>;
+    using ValueTuple = std::tuple<decltype(*std::declval<ITERATORS>())...>;
+public:
+    explicit Iterator(IteratorTuple iterators)
+            : _iterators(std::move(iterators))
+    {
+    }
+
+    ValueTuple operator*()
+    {
+        return std::apply([](auto&& ...item) { return ValueTuple{*item...}; }, _iterators);
+    }
+
+    Iterator& operator++()
+    {
+        std::apply([](auto&& ...item) { std::make_tuple(++item...); }, _iterators);
+        return *this;
+    }
+
+    bool operator!=(const Iterator& other) const
+    {
+        return neq(other, std::make_index_sequence<sizeof...(ITERATORS)>());
+    }
+
+private:
+    template <size_t ...INDICES>
+    bool neq(const Iterator& other, std::index_sequence<INDICES...>) const
+    {
+        return ((std::get<INDICES>(_iterators) != std::get<INDICES>(other._iterators)) || ...); // TODO: logical || or &&
+    }
+
+private:
+    IteratorTuple _iterators;
+};
+
 template <typename ...ITERABLE>
 class View
 {
-public:
-    template <typename ...ITERATORS>
-    class Iterator
-    {
-        using IteratorTuple = std::tuple<ITERATORS...>;
-        using ValueTuple = std::tuple<decltype(*std::declval<ITERATORS>())...>;
-    public:
-        explicit Iterator(IteratorTuple iterators)
-                : _iterators(std::move(iterators))
-        {
-        }
-
-        ValueTuple operator*()
-        {
-            return std::apply([](auto&& ...item) { return ValueTuple{*item...}; }, _iterators);
-        }
-
-        Iterator& operator++()
-        {
-            std::apply([](auto&& ...item) { std::make_tuple(++item...); }, _iterators);
-            return *this;
-        }
-
-        bool operator!=(const Iterator& other) const
-        {
-            return neq(other, std::make_index_sequence<sizeof...(ITERABLE)>());
-        }
-
-    private:
-        template <size_t ...INDICES>
-        bool neq(const Iterator& other, std::index_sequence<INDICES...>) const
-        {
-            return ((std::get<INDICES>(_iterators) != std::get<INDICES>(other._iterators)) || ...); // TODO: logical || or &&
-        }
-
-    private:
-        IteratorTuple _iterators;
-    };
-
 public:
     explicit View(ITERABLE& ...iterable)
             : _iterables(iterable...)
