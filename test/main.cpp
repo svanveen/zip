@@ -3,6 +3,7 @@
 #include <vector>
 #include <list>
 #include <iostream>
+#include <algorithm>
 
 int main()
 {
@@ -27,8 +28,8 @@ int main()
         le = 'D';
     }
 
-    for (const auto&[ae, ve, le, cae, cve, cle] : zip::zip(a, v, l, ca, cv, cl))
-    {
-        std::cout << ae << " " << ve << " " << le << " " << cae << " " << cve << " " << cle << "\n";
-    }
+    std::for_each(zip::begin(a, v, l), zip::end(a, v, l), [](auto t) {
+        const auto[ae, ve, le] = t;
+        std::cout << ae << " " << ve << " " << le << "\n";
+    });
 }

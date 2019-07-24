@@ -99,6 +99,20 @@ View<ITERABLE...> zip(ITERABLE& ...iterable)
 {
     return View<ITERABLE...>{iterable...};
 }
+
+
+template <typename ...ITERABLE>
+auto begin(ITERABLE& ...iterable)
+{
+    return View<ITERABLE...>{iterable...}.begin();
+}
+
+
+template <typename ...ITERABLE>
+auto end(ITERABLE& ...iterable)
+{
+    return View<ITERABLE...>{iterable...}.end();
+}
 }
 
 #endif //ZIP_ZIP_H
