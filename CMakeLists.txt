@@ -31,8 +31,8 @@ install(EXPORT ZipTargets
     DESTINATION lib/cmake/Zip
     )
 
-option(WITH_TESTS "Build library including tests" off)
+option(WITH_EXAMPLE "Build library including usage example" off)
 
-if (WITH_TESTS)
-    add_subdirectory(test)
+if (WITH_EXAMPLE)
+    add_subdirectory(example)
 endif ()

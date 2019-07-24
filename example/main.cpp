@@ -7,7 +7,6 @@
 
 int main()
 {
-    // Compilation test
     std::array<double, 3> a{65.3, 2.4, 3.5};
     std::vector<int> v{65, 2, 3};
     std::list<char> l{'A', 'B', 'C'};
@@ -21,6 +20,7 @@ int main()
         std::cout << ae << " " << ve << " " << le << " " << cae << " " << cve << " " << cle << "\n";
     }
 
+    // auto&& is a universal reference
     for (auto&&[ae, ve, le] : zip::zip(a, v, l))
     {
         ae = 35.4;
