@@ -9,16 +9,18 @@ template <typename ...ITERABLE>
 class View
 {
 public:
+    template <typename ...ITERATORS>
     class Iterator
     {
-        using IteratorTuple = std::tuple<decltype(std::begin(std::declval<ITERABLE>()))...>;
+        using IteratorTuple = std::tuple<ITERATORS...>;
+        using ValueTuple = std::tuple<decltype(*std::declval<ITERATORS>())...>;
     public:
         explicit Iterator(IteratorTuple iterators)
                 : _iterators(std::move(iterators))
         {
         }
 
-        decltype(auto) operator*()
+        ValueTuple operator*()
         {
             return get(std::make_index_sequence<sizeof...(ITERABLE)>());
         }
@@ -36,9 +38,9 @@ public:
 
     private:
         template <size_t ...INDICES>
-        decltype(auto) get(std::index_sequence<INDICES...>)
+        ValueTuple get(std::index_sequence<INDICES...>)
         {
-            return std::make_tuple(*std::get<INDICES>(_iterators)...);
+            return ValueTuple{*std::get<INDICES>(_iterators)...};
         }
 
         template <size_t ...INDICES>
@@ -63,25 +65,26 @@ public:
     {
     }
 
-    Iterator begin()
+    auto begin()
     {
         return begin(std::make_index_sequence<sizeof...(ITERABLE)>());
     }
 
-    Iterator end()
+    auto end()
     {
         return end(std::make_index_sequence<sizeof...(ITERABLE)>());
     }
 
+
 private:
     template <size_t ...INDICES>
-    Iterator begin(std::index_sequence<INDICES...>)
+    auto begin(std::index_sequence<INDICES...>)
     {
         return Iterator{std::make_tuple(std::begin(std::get<INDICES>(_iterables))...)};
     }
 
     template <size_t ...INDICES>
-    Iterator end(std::index_sequence<INDICES...>)
+    auto end(std::index_sequence<INDICES...>)
     {
         return Iterator{std::make_tuple(std::end(std::get<INDICES>(_iterables))...)};
     }
@@ -94,7 +97,7 @@ private:
 template <typename ...ITERABLE>
 View<ITERABLE...> zip(ITERABLE& ...iterable)
 {
-    return View(iterable...);
+    return View<ITERABLE...>{iterable...};
 }
 }
 
