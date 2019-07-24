@@ -22,12 +22,12 @@ public:
 
         ValueTuple operator*()
         {
-            return get(std::make_index_sequence<sizeof...(ITERABLE)>());
+            return std::apply([](auto&& ...item) { return ValueTuple{*item...}; }, _iterators);
         }
 
         Iterator& operator++()
         {
-            inc(std::make_index_sequence<sizeof...(ITERABLE)>());
+            std::apply([](auto&& ...item) { std::make_tuple(++item...); }, _iterators);
             return *this;
         }
 
@@ -37,18 +37,6 @@ public:
         }
 
     private:
-        template <size_t ...INDICES>
-        ValueTuple get(std::index_sequence<INDICES...>)
-        {
-            return ValueTuple{*std::get<INDICES>(_iterators)...};
-        }
-
-        template <size_t ...INDICES>
-        void inc(std::index_sequence<INDICES...>)
-        {
-            std::make_tuple(++std::get<INDICES>(_iterators)...); // TODO: find way what this won't be optimized
-        }
-
         template <size_t ...INDICES>
         bool neq(const Iterator& other, std::index_sequence<INDICES...>) const
         {
@@ -67,27 +55,14 @@ public:
 
     auto begin()
     {
-        return begin(std::make_index_sequence<sizeof...(ITERABLE)>());
+        return Iterator{std::apply([](auto&& ...item) { return std::make_tuple(std::begin(item)...); }, _iterables)};
     }
 
     auto end()
     {
-        return end(std::make_index_sequence<sizeof...(ITERABLE)>());
+        return Iterator{std::apply([](auto&& ...item) { return std::make_tuple(std::end(item)...); }, _iterables)};
     }
 
-
-private:
-    template <size_t ...INDICES>
-    auto begin(std::index_sequence<INDICES...>)
-    {
-        return Iterator{std::make_tuple(std::begin(std::get<INDICES>(_iterables))...)};
-    }
-
-    template <size_t ...INDICES>
-    auto end(std::index_sequence<INDICES...>)
-    {
-        return Iterator{std::make_tuple(std::end(std::get<INDICES>(_iterables))...)};
-    }
 
 private:
     std::tuple<ITERABLE& ...> _iterables;
