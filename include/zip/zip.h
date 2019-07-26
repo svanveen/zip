@@ -99,12 +99,25 @@ View<ITERABLE...> zip(ITERABLE&& ...iterable)
     return View<ITERABLE...>{std::forward<ITERABLE>(iterable)...};
 }
 
+template <typename ITERABLE>
+ITERABLE zip(ITERABLE&& iterable)
+{
+    return std::forward<ITERABLE>(iterable);
+}
+
 
 template <typename ...ITERABLE>
 auto begin(ITERABLE&& ...iterable)
 {
     static_assert((std::is_lvalue_reference_v<ITERABLE> && ...), "begin() must be called with an lvalue reference");
     return View<ITERABLE...>{std::forward<ITERABLE>(iterable)...}.begin();
+}
+
+template <typename ITERABLE>
+auto begin(ITERABLE&& iterable)
+{
+    static_assert(std::is_lvalue_reference_v<ITERABLE>, "begin() must be called with an lvalue reference");
+    return std::begin(iterable);
 }
 
 
@@ -114,6 +127,14 @@ auto end(ITERABLE&& ...iterable)
     static_assert((std::is_lvalue_reference_v<ITERABLE> && ...), "begin() must be called with an lvalue reference");
     return View<ITERABLE...>{std::forward<ITERABLE>(iterable)...}.end();
 }
+
+template <typename ITERABLE>
+auto end(ITERABLE&& iterable)
+{
+    static_assert(std::is_lvalue_reference_v<ITERABLE>, "begin() must be called with an lvalue reference");
+    return std::end(iterable);
+}
+
 }
 
 #endif //ZIP_ZIP_H

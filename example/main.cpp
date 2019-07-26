@@ -37,4 +37,13 @@ int main()
         const auto[ae, ve, le] = t;
         std::cout << ae << " " << ve << " " << le << "\n";
     });
+
+    for (const auto& z : zip::zip(a))
+    {
+        std::cout << z << "\n";
+    }
+
+    std::for_each(zip::begin(a), zip::end(a), [](auto t) {
+        std::cout << t << "\n";
+    });
 }
