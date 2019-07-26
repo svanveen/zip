@@ -5,6 +5,31 @@
 
 namespace zip {
 
+namespace type_traits {
+
+template <class T>
+struct remove_rvalue_reference
+{
+    using type = T;
+};
+
+template <class T>
+struct remove_rvalue_reference<T&>
+{
+    using type = T&;
+};
+
+template <class T>
+struct remove_rvalue_reference<T&&>
+{
+    using type = T;
+};
+
+template <class T>
+using remove_rvalue_reference_t = typename remove_rvalue_reference<T>::type;
+
+}
+
 template <typename ...ITERATORS>
 class Iterator
 {
@@ -47,8 +72,8 @@ template <typename ...ITERABLE>
 class View
 {
 public:
-    explicit View(ITERABLE& ...iterable)
-            : _iterables(iterable...)
+    explicit View(ITERABLE&& ...iterable)
+            : _iterables(std::forward<ITERABLE>(iterable)...)
     {
     }
 
@@ -64,28 +89,30 @@ public:
 
 
 private:
-    std::tuple<ITERABLE& ...> _iterables;
+    std::tuple<type_traits::remove_rvalue_reference_t<ITERABLE&&> ...> _iterables;
 };
 
 
 template <typename ...ITERABLE>
-View<ITERABLE...> zip(ITERABLE& ...iterable)
+View<ITERABLE...> zip(ITERABLE&& ...iterable)
 {
-    return View<ITERABLE...>{iterable...};
+    return View<ITERABLE...>{std::forward<ITERABLE>(iterable)...};
 }
 
 
 template <typename ...ITERABLE>
-auto begin(ITERABLE& ...iterable)
+auto begin(ITERABLE&& ...iterable)
 {
-    return View<ITERABLE...>{iterable...}.begin();
+    static_assert((std::is_lvalue_reference_v<ITERABLE> && ...), "begin() must be called with an lvalue reference");
+    return View<ITERABLE...>{std::forward<ITERABLE>(iterable)...}.begin();
 }
 
 
 template <typename ...ITERABLE>
-auto end(ITERABLE& ...iterable)
+auto end(ITERABLE&& ...iterable)
 {
-    return View<ITERABLE...>{iterable...}.end();
+    static_assert((std::is_lvalue_reference_v<ITERABLE> && ...), "begin() must be called with an lvalue reference");
+    return View<ITERABLE...>{std::forward<ITERABLE>(iterable)...}.end();
 }
 }
 

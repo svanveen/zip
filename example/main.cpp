@@ -28,6 +28,11 @@ int main()
         le = 'D';
     }
 
+    for (auto&&[e1, e2] : zip::zip(std::vector<double>{2.2, 3.3}, std::vector<int>{4, 5}))
+    {
+        std::cout << e1 << " " << e2 << "\n";
+    }
+
     std::for_each(zip::begin(a, v, l), zip::end(a, v, l), [](auto t) {
         const auto[ae, ve, le] = t;
         std::cout << ae << " " << ve << " " << le << "\n";
