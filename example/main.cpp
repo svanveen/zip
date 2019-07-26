@@ -5,6 +5,29 @@
 #include <iostream>
 #include <algorithm>
 
+struct NonCopyable
+{
+    NonCopyable() = default;
+
+    NonCopyable(NonCopyable&&) = default;
+
+    NonCopyable& operator=(NonCopyable&&) = default;
+
+    NonCopyable(const NonCopyable&) = delete;
+
+    NonCopyable& operator=(const NonCopyable&) = delete;
+
+    NonCopyable* begin()
+    {
+        return this;
+    }
+
+    NonCopyable* end()
+    {
+        return this;
+    }
+};
+
 int main()
 {
     std::array<double, 3> a{65.3, 2.4, 3.5};
@@ -46,4 +69,7 @@ int main()
     std::for_each(zip::begin(a), zip::end(a), [](auto t) {
         std::cout << t << "\n";
     });
+
+    for (auto&& e : NonCopyable{})
+    {}
 }
