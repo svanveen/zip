@@ -26,6 +26,9 @@ struct remove_rvalue_reference<T&&>
 };
 
 template <class T>
+using remove_cvref_t = std::remove_cv_t<std::remove_reference_t<T>>;
+
+template <class T>
 using remove_rvalue_reference_t = typename remove_rvalue_reference<T>::type;
 
 }
@@ -34,16 +37,18 @@ template <typename ...ITERATORS>
 class Iterator
 {
     using IteratorTuple = std::tuple<ITERATORS...>;
-    using ValueTuple = std::tuple<decltype(*std::declval<ITERATORS>())...>;
+    using value_type = std::tuple<typename std::iterator_traits<ITERATORS>::value_type...>;
+    using reference  = std::tuple<typename std::iterator_traits<ITERATORS>::reference...>;
+    using pointer    = std::tuple<typename std::iterator_traits<ITERATORS>::pointer...>;
 public:
     explicit Iterator(IteratorTuple iterators)
             : _iterators(std::move(iterators))
     {
     }
 
-    ValueTuple operator*()
+    reference operator*()
     {
-        return std::apply([](auto&& ...item) { return ValueTuple{*item...}; }, _iterators);
+        return std::apply([](auto&& ...item) { return reference{*item...}; }, _iterators);
     }
 
     Iterator& operator++()
