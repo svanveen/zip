@@ -83,9 +83,10 @@ public:
     using reference         = std::tuple<typename std::iterator_traits<ITERATORS>::reference...>;
     using pointer           = std::tuple<typename std::iterator_traits<ITERATORS>::pointer...>;
 public:
-    explicit Iterator(std::tuple<ITERATORS...> iterators)
-            : _iterators(std::move(iterators))
+    explicit Iterator(ITERATORS&& ... iterators)
+            : _iterators(std::forward<ITERATORS>(iterators)...)
     {
+        static_assert(!std::is_void_v<iterator_category>);
     }
 
     reference operator*()
@@ -126,12 +127,12 @@ public:
 
     auto begin()
     {
-        return Iterator{std::apply([](auto&& ...item) { return std::make_tuple(std::begin(item)...); }, _iterables)};
+        return std::apply([](auto&& ...item) { return Iterator{std::begin(item)...}; }, _iterables);
     }
 
     auto end()
     {
-        return Iterator{std::apply([](auto&& ...item) { return std::make_tuple(std::end(item)...); }, _iterables)};
+        return std::apply([](auto&& ...item) { return Iterator{std::end(item)...}; }, _iterables);
     }
 
 
