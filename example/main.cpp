@@ -72,4 +72,6 @@ int main()
 
     for (auto&& e : NonCopyable{})
     {}
+
+    static_assert(std::is_same_v<std::iterator_traits<decltype(zip::begin(a, v, l))>::iterator_category, std::random_access_iterator_tag>);
 }

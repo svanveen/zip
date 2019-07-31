@@ -31,17 +31,59 @@ using remove_cvref_t = std::remove_cv_t<std::remove_reference_t<T>>;
 template <class T>
 using remove_rvalue_reference_t = typename remove_rvalue_reference<T>::type;
 
+
+template <typename T, typename S, typename = void>
+struct common_base_helper
+{
+    using type = void;
+};
+
+template <typename T>
+struct common_base_helper<T, T>
+{
+    using type = T;
+};
+
+template <typename T, typename S>
+struct common_base_helper<T, S, std::enable_if_t<!std::is_same_v<T, S> && std::is_base_of_v<T, S>>>
+{
+    using type = S;
+};
+
+template <typename T, typename S>
+struct common_base_helper<T, S, std::enable_if_t<!std::is_same_v<T, S> && std::is_base_of_v<S, T>>>
+{
+    using type = T;
+};
+
+template <typename T, typename ...REST>
+struct common_base
+{
+    using type = typename common_base_helper<T, typename common_base<REST...>::type>::type;
+};
+
+template <typename T>
+struct common_base<T>
+{
+    using type = T;
+};
+
+template <typename ...TYPES>
+using common_base_t = typename common_base<TYPES...>::type;
+
 }
 
 template <typename ...ITERATORS>
 class Iterator
 {
-    using IteratorTuple = std::tuple<ITERATORS...>;
-    using value_type = std::tuple<typename std::iterator_traits<ITERATORS>::value_type...>;
-    using reference  = std::tuple<typename std::iterator_traits<ITERATORS>::reference...>;
-    using pointer    = std::tuple<typename std::iterator_traits<ITERATORS>::pointer...>;
 public:
-    explicit Iterator(IteratorTuple iterators)
+    using difference_type   = std::ptrdiff_t; // TODO: determine common difference type
+    using iterator_category = type_traits::common_base_t<typename std::iterator_traits<ITERATORS>::iterator_category...>;
+    using value_type        = std::tuple<typename std::iterator_traits<ITERATORS>::value_type...>;
+    using reference         = std::tuple<typename std::iterator_traits<ITERATORS>::reference...>;
+    using pointer           = std::tuple<typename std::iterator_traits<ITERATORS>::pointer...>;
+public:
+    explicit Iterator(std::tuple<ITERATORS...> iterators)
             : _iterators(std::move(iterators))
     {
     }
@@ -70,7 +112,7 @@ private:
     }
 
 private:
-    IteratorTuple _iterators;
+    std::tuple<ITERATORS...> _iterators;
 };
 
 template <typename ...ITERABLE>
