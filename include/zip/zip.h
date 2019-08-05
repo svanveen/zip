@@ -100,16 +100,22 @@ public:
         return *this;
     }
 
+
+    bool operator==(const Iterator& other) const
+    {
+        return eq(other, std::make_index_sequence<sizeof...(ITERATORS)>());
+    }
+
     bool operator!=(const Iterator& other) const
     {
-        return neq(other, std::make_index_sequence<sizeof...(ITERATORS)>());
+        return !(*this == other);
     }
 
 private:
     template <size_t ...INDICES>
-    bool neq(const Iterator& other, std::index_sequence<INDICES...>) const
+    bool eq(const Iterator& other, std::index_sequence<INDICES...>) const
     {
-        return ((std::get<INDICES>(_iterators) != std::get<INDICES>(other._iterators)) || ...); // TODO: logical || or &&
+        return ((std::get<INDICES>(_iterators) == std::get<INDICES>(other._iterators)) && ...); // TODO: logical || or &&
     }
 
 private:
