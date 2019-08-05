@@ -47,13 +47,13 @@ struct common_base_helper<T, T>
 template <typename T, typename S>
 struct common_base_helper<T, S, std::enable_if_t<!std::is_same_v<T, S> && std::is_base_of_v<T, S>>>
 {
-    using type = S;
+    using type = T;
 };
 
 template <typename T, typename S>
 struct common_base_helper<T, S, std::enable_if_t<!std::is_same_v<T, S> && std::is_base_of_v<S, T>>>
 {
-    using type = T;
+    using type = S;
 };
 
 template <typename T, typename ...REST>
