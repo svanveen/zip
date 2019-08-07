@@ -82,14 +82,17 @@ public:
     using value_type        = std::tuple<typename std::iterator_traits<ITERATORS>::value_type...>;
     using reference         = std::tuple<typename std::iterator_traits<ITERATORS>::reference...>;
     using pointer           = std::tuple<typename std::iterator_traits<ITERATORS>::pointer...>;
+
 public:
+    Iterator() = default;
+
     explicit Iterator(ITERATORS&& ... iterators)
             : _iterators(std::forward<ITERATORS>(iterators)...)
     {
         static_assert(!std::is_void_v<iterator_category>);
     }
 
-    reference operator*()
+    reference operator*() const
     {
         return std::apply([](auto&& ...item) { return reference{*item...}; }, _iterators);
     }
@@ -100,6 +103,57 @@ public:
         return *this;
     }
 
+    const Iterator operator++(int)
+    {
+        return std::apply([](auto&& ...item) { return Iterator{item++...}; }, _iterators);
+    }
+
+    Iterator& operator+=(Iterator::difference_type difference)
+    {
+        std::apply([&](auto&& ...item) { std::make_tuple(item += difference...); }, _iterators);
+        return *this;
+    }
+
+    Iterator operator+(Iterator::difference_type difference) const
+    {
+        return std::apply([&](auto&& ...item) { return Iterator{item + difference...}; }, _iterators);
+    }
+
+    friend Iterator operator+(Iterator::difference_type difference, const Iterator& iterator)
+    {
+        return std::apply([&](auto&& ...item) { return Iterator{difference + item...}; }, iterator._iterators);
+    }
+
+    Iterator& operator--()
+    {
+        std::apply([](auto&& ...item) { std::make_tuple(--item...); }, _iterators);
+        return *this;
+    }
+
+    const Iterator operator--(int)
+    {
+        return std::apply([](auto&& ...item) { return Iterator{item--...}; }, _iterators);
+    }
+
+    Iterator& operator-=(Iterator::difference_type difference)
+    {
+        return *this += (-difference);
+    }
+
+    Iterator operator-(Iterator::difference_type difference) const
+    {
+        return std::apply([&](auto&& ...item) { return Iterator{item - difference...}; }, _iterators);
+    }
+
+    difference_type operator-(Iterator other) const
+    {
+        return diff(other, std::make_index_sequence<sizeof...(ITERATORS)>());
+    }
+
+    reference operator[](Iterator::difference_type index)
+    {
+        return std::apply([&](auto&& ...item) { return reference{item[index]...}; }, _iterators);
+    }
 
     bool operator==(const Iterator& other) const
     {
@@ -111,11 +165,43 @@ public:
         return !(*this == other);
     }
 
+    bool operator<(const Iterator& other) const
+    {
+        return (other - *this) > 0;
+    }
+
+    bool operator>(const Iterator& other) const
+    {
+        return other < *this;
+    }
+
+    bool operator>=(const Iterator& other) const
+    {
+        return !(*this < other);
+    }
+
+    bool operator<=(const Iterator& other) const
+    {
+        return !(*this > other);
+    }
+
 private:
     template <size_t ...INDICES>
     bool eq(const Iterator& other, std::index_sequence<INDICES...>) const
     {
-        return ((std::get<INDICES>(_iterators) == std::get<INDICES>(other._iterators)) && ...); // TODO: logical || or &&
+        return ((std::get<INDICES>(_iterators) == std::get<INDICES>(other._iterators)) && ...);
+    }
+
+    template <size_t ...INDICES>
+    difference_type diff(const Iterator& other, std::index_sequence<INDICES...>) const
+    {
+        const auto differences = std::tuple{(std::get<INDICES>(_iterators) - std::get<INDICES>(other._iterators))...};
+        const auto& difference = std::get<0>(differences);
+        if (((std::get<INDICES>(differences) != difference) || ...))
+        {
+            throw std::logic_error("Inconsistent distance");
+        }
+        return difference;
     }
 
 private:
