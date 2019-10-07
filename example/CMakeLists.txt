@@ -1,8 +1,8 @@
-add_executable(zip-test
+add_executable(zip-example
     main.cpp
     )
 
-target_link_libraries(zip-test
+target_link_libraries(zip-example
     PUBLIC
     zip
     )
