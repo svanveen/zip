@@ -74,4 +74,34 @@ int main()
     {}
 
     static_assert(std::is_same_v<std::iterator_traits<decltype(zip::begin(a, v, l))>::iterator_category, std::bidirectional_iterator_tag>);
+
+    zip::zip(a) == zip::zip(a);
+
+    // won't compile
+    // zip::Iterator(std::back_inserter(v)) == zip::Iterator(std::back_inserter(v));
+
+    zip::begin(a, v)++;
+    zip::begin(a, v)+=2;
+    zip::begin(a, v)+2;
+    2+zip::begin(a, v);
+    zip::end(a, v)--;
+    zip::end(a, v)-=2;
+    zip::end(a, v)-2;
+
+    zip::begin(a, v) < zip::begin(a, v);
+    zip::begin(a, v) > zip::begin(a, v);
+    zip::begin(a, v) <= zip::begin(a, v);
+    zip::begin(a, v) >= zip::begin(a, v);
+    zip::begin(a, v) == zip::begin(a, v);
+    zip::begin(a, v) != zip::begin(a, v);
+
+    std::tuple<double, int> vt{42.6, 36};
+
+    const auto dist = zip::end(a, v) - zip::begin(a, v);
+    std::cout << dist << "\n";
+
+    auto rt = zip::begin(a, v)[1];
+    rt = vt;
+    const auto[e1, e2] = rt;
+    std::cout << e1 << " " << e2 << "\n";
 }
